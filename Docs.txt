@@ -1,0 +1,207 @@
+Data and style options for a community visualization are defined in a config JSON. The data configuration sets the number of dimensions and metrics the visualization supports. The style configuration defines the style selectors available in the property panel.
+
+Data configuration
+The data configuration defines the DIMENSION and METRIC elements that Looker Studio renders in the property panel. Each element corresponds to dimension and element fields that the end user provides as inputs to the visualization.
+
+Sample data element:
+
+
+{
+  "id": "twoDimensionsPlease",
+  "label": "Dimension Element Heading",
+  "type": "DIMENSION",
+  "options": {
+    "min": 2,
+    "max": 2,
+  }
+}
+The id you define in the data element is included in the information that Looker Studio responds with. The label defines the text users see above the data section, and the type defines whether it is a dimension or metric. The options object defines the minimum and maximum number of fields a user can add to the data element.
+
+In a DIMENSION data element, the options object supports an optional supportedTypes key. If defined, Looker Studio constrains the type of dimension fields that can be added to the element. The value of supportedTypes is an array that can contain any combination of "DEFAULT", "TIME", and "GEO".
+
+A data section groups multiple data elements together. Looker Studio renders the label as a heading for multiple data elements.
+
+Sample data section:
+
+
+{
+  "id": "dimensionSection1",
+  "label": "Dimension Section Heading",
+  "elements":[
+    // array of data elements
+  ]
+}
+This screenshot shows how Looker Studio renders the data section and data element above:
+
+Screenshot of Data Element in property panel
+
+Style configuration
+The style configuration defines the style selectors that are rendered in the property panel.
+
+A sample style element:
+
+
+{
+  "id": "linkOpacity",
+  "label": "Link opacity",
+  "type": "OPACITY",
+  "defaultValue": "0.2"
+}
+The label defines the text that users see as a tooltip, and the type defines the kind of style selector that Looker Studio renders. Optionally, defaultValue defines a default value for each style element.
+
+Similarly to data elements, style elements are defined inside sections, which provide headings and logical groupings. To see the full list of available selectors, see the config reference.
+
+A sample style section:
+
+
+{
+  "id": "styleGroup1",
+  "label": "Header for style group",
+  "elements": [
+    // insert Style Elements here
+  ]
+}
+The following screenshot shows an example of a style panel with an opacity selector, with the tooltip "Link Opacity" corresponding to the label in the style element.
+
+Screenshot of style selector
+
+Interaction configuration
+The interaction configuration defines how chart interactions work for a community visualization. This is optional.
+
+Example:
+
+
+{
+  "id": "onClick",
+  "supportedActions": ["FILTER"]
+}
+Currently, only FILTER is supported. If you configure interactions, a checkbox shows up in the property panel.
+
+Screenshot of style selector
+
+Features configuration
+The features configuration can turn on or off various features in your community visualization. This section is optional. A list of features can be found in the config reference.
+
+Example:
+
+
+  "features": {
+    "enableComparisonDateRange": true
+  }
+Example
+To see an example of a visualization config, see the sample config.
+
+Next steps
+Once you have defined your config, write the visualization.
+
+Was this helpful?
+
+Except as otherwise noted, the content of this page is licensed under the Creative Commons Attribution 4.0 License, and code samples are licensed under the Apache 2.0 License. For details, see the Google Developers Site Policies. Java is a registered trademark of Oracle and/or its affiliates.
+
+Last updated 2024-09-18 UTC.
+
+Writing your visualization 
+
+bookmark_border
+Note: The Community Visualization feature is in "Developer Preview". To learn more about upcoming features and improvements during this period visit the Developer Preview page.
+Writing the visualization code
+The Looker Studio helper library provides an interface between you and Looker Studio. To use the library, provide a callback function that renders the visualization.
+
+The most salient function in the library is subscribeToData, which takes two arguments: a callback function that renders the visualization, and an options object that specifies what kind of transform you'd like your data to take. To learn more, review the library reference.
+
+The following provides an outline of what your visualization JavaScript could look like.
+
+
+function drawViz(vizData){
+  var height = dscc.getHeight();
+  var width = dscc.getWidth();
+  console.log(vizData);
+  // this is where you write your viz code
+}
+
+dscc.subscribeToData(drawViz, {transform: dscc.objectTransform})
+There are a few key things to keep in mind when writing a community visualization.
+
+Updates from the subscribeToData function occur when the data, styling, or iframe size changes.
+
+Key Point: The drawViz() function should clear the canvas each time it is called. Otherwise, it may continuously append visualizations to the iframe.
+For example:
+
+
+// create and add the canvas
+// do this one time
+var canvasElement = document.createElement('canvas');
+var ctx = canvasElement.getContext('2d');
+canvasElement.id = 'myViz';
+document.body.appendChild(canvasElement);
+
+function drawViz(data){
+  // clear the canvas
+  var ctx = canvasElement.getContext('2d');
+  ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+  // viz code goes here
+
+}
+Looker Studio loads and runs JavaScript files, not HTML. All DOM manipulation needs to happen through JavaScript.
+
+For example: the following code defines and appends a div to the DOM.
+
+
+// create and add the canvas
+var chartElement = document.createElement('div');
+chartElement.id = 'myViz';
+document.body.appendChild(chartElement);
+Bundling the code
+Looker Studio community visualizations only allow you to load one JavaScript file. The uploaded code should be a single file that includes the dscc helper library, any JavaScript visualization libraries, and your visualization code.
+
+To do this in bash, you can use the cat command, like below.
+
+
+cat dscc.min.js vizLibrary.js myVizSource.js > myViz.js
+Defining the manifest
+The visualization manifest file provides metadata about the visualization, as well as information about the location of visualization resources. The location of the manifest file is referred to as the "component ID", and used to load a community visualization.
+
+Review the manifest reference to see a sample manifest.
+
+Note: The name of the manifest must be manifest.json
+The devMode parameter of the manifest determines the caching behavior of the visualization. While developing the visualization, devMode should be true to ensure that hard refreshes load the latest version of the resources. Once the code is stable, devMode should be false to ensure that reports with community visualizations load quickly. To learn more about caching, see the caching advanced guide.
+
+Next steps
+Now that you have the code for your visualization written, learn how to host your visualization.
+
+Was this helpful?
+
+Except as otherwise noted, the content of this page is licensed under the Creative Commons Attribution 4.0 License, and code samples are licensed under the Apache 2.0 License. For details, see the Google Developers Site Policies. Java is a registered trademark of Oracle and/or its affiliates.
+
+Last updated 2024-09-18 UTC.
+
+Uploading your viz 
+
+bookmark_border
+Now that your visualization code is written, Looker Studio needs to be able to access your resources. For Looker Studio to load a community visualization, all of your resources must be publicly available in a Google Cloud Storage bucket.
+
+Create a bucket and upload files using either the web interface or the gsutil command-line tool.
+
+If your visualization files are in your current working directory, you can use the following command to upload your files to your storage bucket.
+
+
+gsutil cp -a public-read * gs://MY_GOOGLE_CLOUD_STORAGE_BUCKET
+Next steps
+Now that your visualization resources are uploaded, learn how to use your visualization in a Looker Studio report.
+
+Using your visualization 
+
+bookmark_border
+Note: The Community Visualization feature is in "Developer Preview". To learn more about upcoming features and improvements during this period visit the Developer Preview page.
+To load a community visualization you've developed, use the location of the manifest file prefixed by gs://.
+
+Edit your report
+In the toolbar, click Community visualizations and components Click community visualizations and components
+In the dialog, click Explore more to open the Community Gallery shade Click explore more
+Click Build your own visualization
+Enter your Manifest Path and click Submit. One visualization icon will be rendered for each component in your manifest. Click a visualization icon to add it to your report.
+Enter manifest path
+
+Next steps
+Now that you have written and deployed a community visualization, share the visualizations that you build.

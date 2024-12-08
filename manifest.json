@@ -1,0 +1,25 @@
+{
+  "name": "Line Graph",
+  "organization": "Your Organization",
+  "description": "A customizable line graph visualization",
+  "logoUrl": "",
+  "organizationUrl": "",
+  "supportUrl": "",
+  "privacyPolicyUrl": "",
+  "termsOfServiceUrl": "",
+  "packageUrl": "",
+  "devMode": true,
+  "components": [
+    {
+      "id": "lineGraph",
+      "name": "Line Graph",
+      "iconUrl": "",
+      "description": "A customizable line graph visualization",
+      "resource": {
+        "js": "visualization.js",
+        "config": "config.json",
+        "css": ""
+      }
+    }
+  ]
+} 
